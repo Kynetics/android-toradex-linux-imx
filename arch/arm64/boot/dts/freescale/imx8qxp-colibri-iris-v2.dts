@@ -1,0 +1,127 @@
+// SPDX-License-Identifier: GPL-2.0+ OR X11
+/*
+ * Copyright 2018-2019 Toradex
+ */
+
+/dts-v1/;
+
+#include "imx8qxp-colibri.dtsi"
+#include "imx8qxp-colibri-eval-v3.dtsi"
+
+/ {
+	model = "Toradex Colibri iMX8QXP/DX on Colibri Iris Board V2";
+	compatible = "toradex,colibri-imx8x-eval-v3",
+		     "toradex,colibri-imx8x",
+		     "fsl,imx8qxp";
+	dtb_filename = "imx8qxp-colibri-iris-v2.dtb";
+};
+
+&adma_pwm {
+        status = "okay";
+};
+
+&backlight {
+	brightness-levels = < 10 11 12 13 14 15 16 17 18 19
+                                       20 21 22 23 24 25 26 27 28 29
+                                       30 31 32 33 34 35 36 37 38 39
+                                       40 41 42 43 44 45 46 47 48 49
+                                       50 51 52 53 54 55 56 57 58 59
+                                       60 61 62 63 64 65 66 67 68 69
+                                       70 71 72 73 74 75 76 77 78 79
+                                       80 81 82 83 84 85 86 87 88 89
+                                       90 91 92 93 94 95 96 97 98 99
+                               100>;
+        default-brightness-level = <80>;
+        power-supply = <&reg_3v3>;
+        pwms = <&adma_pwm 0 6666667 PWM_POLARITY_INVERTED>;
+        status = "okay";
+};
+
+&display_lcdif {
+	status = "okay";
+
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	port@1 {
+		reg = <1>;
+
+		lcd_display_out: endpoint {
+			remote-endpoint = <&lcd_panel_in>;
+		};
+	};
+};
+
+&panel_dpi {
+	status = "okay";
+
+	port {
+		lcd_panel_in: endpoint {
+			remote-endpoint = <&lcd_display_out>;
+		};
+	};
+};
+
+&i2c1 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	/* Atmel maxtouch controller */
+	atmel_mxt_ts: atmel_mxt_ts@4a {
+		compatible = "atmel,maxtouch";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_mxt_ts>;
+		reg = <0x4a>;
+		interrupt-parent = <&lsio_gpio3>;
+		interrupts = <20 IRQ_TYPE_EDGE_FALLING>;		/* SODIMM 107 */
+		reset-gpios = <&lsio_gpio3 24 GPIO_ACTIVE_HIGH>;	/* SODIMM 106 */
+		status = "okay";
+	};
+};
+
+&iomuxc {
+	colibri-imx8qxp {
+		pinctrl_mxt_ts: mxt-ts {
+			fsl,pins = <
+				IMX8QXP_QSPI0B_DATA2_LSIO_GPIO3_IO20		0x20		/* SODIMM 107 */
+				IMX8QXP_QSPI0B_SS1_B_LSIO_GPIO3_IO24		0x20		/* SODIMM 106 */
+			>;
+		};
+	};
+};
+
+/ {
+	panel_dpi: panel-dpi {
+		/*
+		* edt,et057090dhu: EDT 5.7" LCD TFT
+		* edt,et070080dh6: EDT 7.0" LCD TFT
+		* logictechno,lt161010-2nhc: Cap. Touch Display 7" Parallel
+		* logictechno,lt161010-2nhr: Res. Touch Display 7" Paralle
+		* logictechno,lt170410-2whc: Cap. Touch Display 10.1" LVDS
+		* tpk,f07a-0102: Capacitive Multi-Touch Display Fusion 7"
+		* tpk,f10a-0102: Capacitive Multi-Touch Display Fusion 10"
+		*/
+		compatible = "panel-dpi";
+		backlight = <&backlight>;
+		power-supply = <&reg_3v3>;
+
+		width-mm = <154>;
+		height-mm = <86>;
+
+		data-mapping = "bgr666";
+		status = "okay";
+
+		panel-timing {
+			clock-frequency = <33230769>;
+			hactive = <800>;
+			vactive = <480>;
+			hsync-len = <128>;
+			hfront-porch = <40>;
+			hback-porch = <88>;
+			vsync-len = <1>;
+			vfront-porch = <10>;
+			vback-porch = <33>;
+			pixelclk-active = <1>;
+		};
+	};
+};
